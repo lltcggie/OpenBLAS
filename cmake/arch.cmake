@@ -113,7 +113,3 @@ if (${ARCH} STREQUAL "arm64")
   set(BINARY_DEFINED 1)
 endif ()
 
-
-if (EXPRECISION)
-  set(OPENBLAS_EXPRECISION 1)
-endif ()

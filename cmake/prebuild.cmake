@@ -92,7 +92,6 @@ message(STATUS "GETARCH results:\n${GETARCH_MAKE_OUT}")
 # append config data from getarch to the TARGET file and read in CMake vars
 file(APPEND ${TARGET_CONF} ${GETARCH_CONF_OUT})
 ParseGetArchVars(${GETARCH_MAKE_OUT})
-ParseGetConfArchVarsOpenBLAS(${GETARCH_CONF_OUT} GETARCH_CONF_OUT_OPENBLAS)
 
 set(GETARCH2_DIR "${PROJECT_BINARY_DIR}/getarch2_build")
 set(GETARCH2_BIN "getarch_2nd${CMAKE_EXECUTABLE_SUFFIX}")
@@ -107,17 +106,44 @@ try_compile(GETARCH2_RESULT ${GETARCH2_DIR}
 # use the cmake binary w/ the -E param to run a shell command in a cross-platform way
 execute_process(COMMAND ${PROJECT_BINARY_DIR}/${GETARCH2_BIN} 0 OUTPUT_VARIABLE GETARCH2_MAKE_OUT)
 execute_process(COMMAND ${PROJECT_BINARY_DIR}/${GETARCH2_BIN} 1 OUTPUT_VARIABLE GETARCH2_CONF_OUT)
+
 # append config data from getarch_2nd to the TARGET file and read in CMake vars
 file(APPEND ${TARGET_CONF} ${GETARCH2_CONF_OUT})
 ParseGetArchVars(${GETARCH2_MAKE_OUT})
-ParseGetConfArchVarsOpenBLAS(${GETARCH2_CONF_OUT} GETARCH2_CONF_OUT_OPENBLAS)
 
-file(READ ${CMAKE_SOURCE_DIR}/openblas_config_template.h OpenBLAS_Config_Template)
+function(ParseGetConfArchVarsOpenBLAS GETARCH_IN GETARCH_OUT)
+  set(GETARCH_OUT_OPENBLAS)
+  string(REGEX MATCHALL "#define [^\n]+[$\n]" GETARCH_RESULT_LIST "${GETARCH_IN}")
+  string(REGEX REPLACE "\n" "" GETARCH_RESULT_LIST "${GETARCH_RESULT_LIST}")
+
+  foreach (GETARCH_LINE ${GETARCH_RESULT_LIST})
+    string(REGEX REPLACE " +" " " GETARCH_LINE_LIST "${GETARCH_LINE}")
+    string(REGEX REPLACE "\t+" " " GETARCH_LINE_LIST "${GETARCH_LINE_LIST}")
+    string(REPLACE " " ";" GETARCH_LINE_LIST "${GETARCH_LINE_LIST}")
+
+    list(LENGTH GETARCH_LINE_LIST VAR_NUM)
+
+    if(VAR_NUM EQUAL 2)
+      list(GET GETARCH_LINE_LIST 1 VAR_NAME)
+      set(GETARCH_OUT_OPENBLAS "${GETARCH_OUT_OPENBLAS}#define OPENBLAS_${VAR_NAME} \n")
+    elseif(VAR_NUM EQUAL 3)
+      list(GET GETARCH_LINE_LIST 1 VAR_NAME)
+      list(GET GETARCH_LINE_LIST 2 VAR_VALUE)
+      set(GETARCH_OUT_OPENBLAS "${GETARCH_OUT_OPENBLAS}#define OPENBLAS_${VAR_NAME} ${VAR_VALUE}\n")
+    endif()
+  endforeach ()
+
+  set(${GETARCH_OUT} "${GETARCH_OUT_OPENBLAS}" PARENT_SCOPE)
+endfunction ()
+
+file(READ ${TARGET_CONF} OpenBLAS_Config_Org_Str)
+ParseGetConfArchVarsOpenBLAS("${OpenBLAS_Config_Org_Str}" OpenBLAS_Config_Str)
+
+file(READ ${CMAKE_SOURCE_DIR}/openblas_config_template.h OpenBLAS_Config_Template_Str)
 
 set(TARGET_OPENBLAS_CONF "${CMAKE_SOURCE_DIR}/openblas_config.h")
-CONFIGURE_FILE(cmake/openblas_config.h.cmake ${TARGET_OPENBLAS_CONF} @ONLY)
-file(APPEND ${TARGET_OPENBLAS_CONF} "${GETARCH_CONF_OUT_OPENBLAS}\n")
-file(APPEND ${TARGET_OPENBLAS_CONF} "${GETARCH2_CONF_OUT_OPENBLAS}\n")
+file(WRITE ${TARGET_OPENBLAS_CONF} "#ifndef OPENBLAS_CONFIG_H\n#define OPENBLAS_CONFIG_H\n")
+file(APPEND ${TARGET_OPENBLAS_CONF} "${OpenBLAS_Config_Str}")
 file(APPEND ${TARGET_OPENBLAS_CONF} "#define OPENBLAS_VERSION \" OpenBLAS ${OpenBLAS_VERSION} \"\n")
-file(APPEND ${TARGET_OPENBLAS_CONF} "${OpenBLAS_Config_Template}\n")
+file(APPEND ${TARGET_OPENBLAS_CONF} "${OpenBLAS_Config_Template_Str}")
 file(APPEND ${TARGET_OPENBLAS_CONF} "#endif /* OPENBLAS_CONFIG_H */\n")

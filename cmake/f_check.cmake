@@ -49,9 +49,6 @@ if (NOT ONLY_CBLAS)
     "#define NEEDBUNDERSCORE 1\n"
     "#define NEED2UNDERSCORES 0\n")
 
-  set(OPENBLAS_BUNDERSCORE "_")
-  set(OPENBLAS_NEEDBUNDERSCORE 1)
-  set(OPENBLAS_NEED2UNDERSCORES 0)
 else ()
 
   #When we only build CBLAS, we set NOFORTRAN=2
@@ -62,9 +59,6 @@ else ()
   file(APPEND ${TARGET_CONF}
     "#define BUNDERSCORE _\n"
     "#define NEEDBUNDERSCORE 1\n")
-
-  set(OPENBLAS_BUNDERSCORE "_")
-  set(OPENBLAS_NEEDBUNDERSCORE 1)
 endif()
 
 get_filename_component(F_COMPILER ${CMAKE_Fortran_COMPILER} NAME_WE)
