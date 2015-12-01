@@ -9,7 +9,34 @@ function(ParseGetArchVars GETARCH_IN)
     list(GET SPLIT_VAR 0 VAR_NAME)
     list(GET SPLIT_VAR 1 VAR_VALUE)
     set(${VAR_NAME} ${VAR_VALUE} PARENT_SCOPE)
+    set(OPENBLAS_${VAR_NAME} ${VAR_VALUE} PARENT_SCOPE)
   endforeach ()
+endfunction ()
+
+# Reads string from getarch and convert format #define OPENBLAS_VARNAME VALUE. Format of getarch vars is #define VARNAME VALUE
+function(ParseGetConfArchVarsOpenBLAS GETARCH_IN GETARCH_OUT)
+  set(GETARCH_OUT_OPENBLAS)
+  string(REGEX MATCHALL "#define [^\n]+[$\n]" GETARCH_RESULT_LIST "${GETARCH_IN}")
+  string(REGEX REPLACE "\n" "" GETARCH_RESULT_LIST "${GETARCH_RESULT_LIST}")
+
+  foreach (GETARCH_LINE ${GETARCH_RESULT_LIST})
+    string(REGEX REPLACE " +" " " GETARCH_LINE_LIST "${GETARCH_LINE}")
+    string(REGEX REPLACE "\t+" " " GETARCH_LINE_LIST "${GETARCH_LINE_LIST}")
+    string(REPLACE " " ";" GETARCH_LINE_LIST "${GETARCH_LINE_LIST}")
+
+    list(LENGTH GETARCH_LINE_LIST VAR_NUM)
+
+    if(VAR_NUM EQUAL 2)
+      list(GET GETARCH_LINE_LIST 1 VAR_NAME)
+      set(GETARCH_OUT_OPENBLAS "${GETARCH_OUT_OPENBLAS}#define OPENBLAS_${VAR_NAME}\n")
+    elseif(VAR_NUM EQUAL 3)
+      list(GET GETARCH_LINE_LIST 1 VAR_NAME)
+      list(GET GETARCH_LINE_LIST 2 VAR_VALUE)
+      set(GETARCH_OUT_OPENBLAS "${GETARCH_OUT_OPENBLAS}#define OPENBLAS_${VAR_NAME} ${VAR_VALUE}\n")
+    endif()
+  endforeach ()
+
+  set(${GETARCH_OUT} "${GETARCH_OUT_OPENBLAS}" PARENT_SCOPE)
 endfunction ()
 
 # Reads a Makefile into CMake vars.
@@ -30,6 +57,7 @@ macro(ParseMakefileVars MAKEFILE_IN)
         string(REPLACE "$(${make_var})" "${${make_var}}" var_value ${var_value})
       endforeach ()
       set(${var_name} ${var_value})
+      set(OPENBLAS_${var_name} ${var_value})
     else ()
       string(REGEX MATCH "include \\$\\(KERNELDIR\\)/(.+)$" line_match "${makefile_line}")
       if (NOT "${line_match}" STREQUAL "")

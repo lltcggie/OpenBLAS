@@ -92,6 +92,7 @@ message(STATUS "GETARCH results:\n${GETARCH_MAKE_OUT}")
 # append config data from getarch to the TARGET file and read in CMake vars
 file(APPEND ${TARGET_CONF} ${GETARCH_CONF_OUT})
 ParseGetArchVars(${GETARCH_MAKE_OUT})
+ParseGetConfArchVarsOpenBLAS(${GETARCH_CONF_OUT} GETARCH_CONF_OUT_OPENBLAS)
 
 set(GETARCH2_DIR "${PROJECT_BINARY_DIR}/getarch2_build")
 set(GETARCH2_BIN "getarch_2nd${CMAKE_EXECUTABLE_SUFFIX}")
@@ -106,8 +107,17 @@ try_compile(GETARCH2_RESULT ${GETARCH2_DIR}
 # use the cmake binary w/ the -E param to run a shell command in a cross-platform way
 execute_process(COMMAND ${PROJECT_BINARY_DIR}/${GETARCH2_BIN} 0 OUTPUT_VARIABLE GETARCH2_MAKE_OUT)
 execute_process(COMMAND ${PROJECT_BINARY_DIR}/${GETARCH2_BIN} 1 OUTPUT_VARIABLE GETARCH2_CONF_OUT)
-
 # append config data from getarch_2nd to the TARGET file and read in CMake vars
 file(APPEND ${TARGET_CONF} ${GETARCH2_CONF_OUT})
 ParseGetArchVars(${GETARCH2_MAKE_OUT})
+ParseGetConfArchVarsOpenBLAS(${GETARCH2_CONF_OUT} GETARCH2_CONF_OUT_OPENBLAS)
 
+file(READ ${CMAKE_SOURCE_DIR}/openblas_config_template.h OpenBLAS_Config_Template)
+
+set(TARGET_OPENBLAS_CONF "${CMAKE_SOURCE_DIR}/openblas_config.h")
+CONFIGURE_FILE(cmake/openblas_config.h.cmake ${TARGET_OPENBLAS_CONF} @ONLY)
+file(APPEND ${TARGET_OPENBLAS_CONF} "${GETARCH_CONF_OUT_OPENBLAS}\n")
+file(APPEND ${TARGET_OPENBLAS_CONF} "${GETARCH2_CONF_OUT_OPENBLAS}\n")
+file(APPEND ${TARGET_OPENBLAS_CONF} "#define OPENBLAS_VERSION \" OpenBLAS ${OpenBLAS_VERSION} \"\n")
+file(APPEND ${TARGET_OPENBLAS_CONF} "${OpenBLAS_Config_Template}\n")
+file(APPEND ${TARGET_OPENBLAS_CONF} "#endif /* OPENBLAS_CONFIG_H */\n")
