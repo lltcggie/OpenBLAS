@@ -26,10 +26,12 @@ set(NO_LAPACK 1)
 set(NO_LAPACKE 1)
 endif()
 
+if(NOT MSVC) # Need Debug and Release Build liblary from Visual Studio
 if(BUILD_DEBUG)
 set(CMAKE_BUILD_TYPE Debug)
 else()
 set(CMAKE_BUILD_TYPE Release)
+endif()
 endif()
 
 if(BUILD_WITHOUT_CBLAS)
@@ -48,6 +50,10 @@ set(OPENBLAS_CMAKE_CONFIG_VERSION ${OPENBLAS_CMAKE_CONFIG_BASE}ConfigVersion.cma
 
 
 message(WARNING "CMake support is experimental. This will not produce the same Makefiles that OpenBLAS ships with. Only x86 support is currently available.")
+
+if(MSVC)
+   set(CMAKE_DEBUG_POSTFIX "d")
+endif()
 
 include("${CMAKE_SOURCE_DIR}/cmake/utils.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/system.cmake")
