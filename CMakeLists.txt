@@ -12,11 +12,7 @@ set(OpenBLAS_VERSION "${OpenBLAS_MAJOR_VERSION}.${OpenBLAS_MINOR_VERSION}.${Open
 enable_language(ASM)
 enable_language(C)
 
-if(MSVC)
-set(OpenBLAS_LIBNAME libopenblas)
-else()
 set(OpenBLAS_LIBNAME openblas)
-endif()
 
 #######
 if(MSVC)
@@ -143,16 +139,14 @@ endif()
 
 # add objects to the openblas lib
 add_library(${OpenBLAS_LIBNAME} SHARED ${LA_SOURCES} ${LAPACKE_SOURCES} ${TARGET_OBJS} ${OpenBLAS_DEF_FILE})
-
 include("${CMAKE_SOURCE_DIR}/cmake/export.cmake")
 
 
-if(NOT MSVC)
-#only build shared library for MSVC
 add_library(${OpenBLAS_LIBNAME}_static STATIC ${LA_SOURCES} ${LAPACKE_SOURCES} ${TARGET_OBJS})
-set_target_properties(${OpenBLAS_LIBNAME}_static PROPERTIES OUTPUT_NAME ${OpenBLAS_LIBNAME})
-set_target_properties(${OpenBLAS_LIBNAME}_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+set_target_properties(${OpenBLAS_LIBNAME}_static PROPERTIES OUTPUT_NAME "${OpenBLAS_LIBNAME}")
+set_target_properties(${OpenBLAS_LIBNAME}_static PROPERTIES PREFIX "lib")
 
+if(NOT MSVC)
 if(SMP)
 target_link_libraries(${OpenBLAS_LIBNAME} pthread)
 target_link_libraries(${OpenBLAS_LIBNAME}_static pthread)
@@ -215,17 +209,10 @@ endif()
 INSTALL(FILES "${OPENBLAS_CMAKE_CONFIG_GENERATE}" "${OPENBLAS_CMAKE_CONFIG_VERSION_GENERATE}"
         DESTINATION "${OPENBLAS_CMAKE_DIR}")
 
-if(NOT MSVC)
 INSTALL(TARGETS ${OpenBLAS_LIBNAME} ${OpenBLAS_LIBNAME}_static
         RUNTIME DESTINATION "${OPENBLAS_BINARY_DIR}"
         LIBRARY DESTINATION "${OPENBLAS_LIBRARY_DIR}"
         ARCHIVE DESTINATION "${OPENBLAS_LIBRARY_DIR}")
-else()
-INSTALL(TARGETS ${OpenBLAS_LIBNAME}
-        RUNTIME DESTINATION "${OPENBLAS_BINARY_DIR}" 
-        LIBRARY DESTINATION "${OPENBLAS_LIBRARY_DIR}" 
-        ARCHIVE DESTINATION "${OPENBLAS_LIBRARY_DIR}")
-endif()
 
 # TODO: Why is the config saved here? Is this necessary with CMake?
 #Save the config files for installation
