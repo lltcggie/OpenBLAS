@@ -137,14 +137,14 @@ function(ParseGetConfArchVarsOpenBLAS GETARCH_IN GETARCH_OUT)
 endfunction ()
 
 
-message(STATUS "Generating openblas_config.h in ${OPENBLAS_INCLUDE_DIR}")
+message(STATUS "Generating openblas_config.h in ${PROJECT_BINARY_DIR}")
 
 file(READ ${TARGET_CONF} OpenBLAS_Config_Org_Str)
 ParseGetConfArchVarsOpenBLAS("${OpenBLAS_Config_Org_Str}" OpenBLAS_Config_Str)
 
 file(READ ${CMAKE_SOURCE_DIR}/openblas_config_template.h OpenBLAS_Config_Template_Str)
 
-set(TARGET_OPENBLAS_CONF "${OPENBLAS_INCLUDE_DIR}/openblas_config.h")
+set(TARGET_OPENBLAS_CONF "${PROJECT_BINARY_DIR}/openblas_config.h")
 file(WRITE ${TARGET_OPENBLAS_CONF} "#ifndef OPENBLAS_CONFIG_H\n#define OPENBLAS_CONFIG_H\n")
 file(APPEND ${TARGET_OPENBLAS_CONF} "${OpenBLAS_Config_Str}")
 file(APPEND ${TARGET_OPENBLAS_CONF} "#define OPENBLAS_VERSION \" OpenBLAS ${OpenBLAS_VERSION} \"\n")
@@ -152,19 +152,19 @@ file(APPEND ${TARGET_OPENBLAS_CONF} "${OpenBLAS_Config_Template_Str}")
 file(APPEND ${TARGET_OPENBLAS_CONF} "#endif /* OPENBLAS_CONFIG_H */\n")
 
 
-message(STATUS "Generating f77blas.h in ${OPENBLAS_INCLUDE_DIR}")
+message(STATUS "Generating f77blas.h in ${PROJECT_BINARY_DIR}")
 
 file(READ ${CMAKE_SOURCE_DIR}/common_interface.h OpenBLAS_common_interface_Str)
 
-set(TARGET_f77blas_CONF "${OPENBLAS_INCLUDE_DIR}/f77blas.h")
+set(TARGET_f77blas_CONF "${PROJECT_BINARY_DIR}/f77blas.h")
 file(WRITE ${TARGET_f77blas_CONF} "#ifndef OPENBLAS_F77BLAS_H\n#define OPENBLAS_F77BLAS_H\n#include \"openblas_config.h\"\n")
 file(APPEND ${TARGET_f77blas_CONF} "${OpenBLAS_common_interface_Str}")
 file(APPEND ${TARGET_f77blas_CONF} "#endif\n")
 
 if(NOT NO_CBLAS)
-  message(STATUS "Generating cblas.h in ${OPENBLAS_INCLUDE_DIR}")
+  message(STATUS "Generating cblas.h in ${PROJECT_BINARY_DIR}")
 
-  set(TARGET_cblasCONF "${OPENBLAS_INCLUDE_DIR}/cblas.h")
+  set(TARGET_cblasCONF "${PROJECT_BINARY_DIR}/cblas.h")
 
   file(READ ${CMAKE_SOURCE_DIR}/cblas.h OpenBLAS_cblas_Org_Str)
   string(REPLACE "common" "openblas_config" OpenBLAS_cblas_Str "${OpenBLAS_cblas_Org_Str}")
@@ -172,9 +172,9 @@ if(NOT NO_CBLAS)
 endif()
 
 if(NOT NO_LAPACKE)
-  message(STATUS "echo Copying LAPACKE header files to ${OPENBLAS_INCLUDE_DIR}")
+  message(STATUS "echo Copying LAPACKE header files to ${PROJECT_BINARY_DIR}")
 
-  #set(TARGET_cblasCONF "${OPENBLAS_INCLUDE_DIR}/cblas.h")
+  #set(TARGET_cblasCONF "${PROJECT_BINARY_DIR}/cblas.h")
 
   #file(READ ${CMAKE_SOURCE_DIR}/cblas.h OpenBLAS_cblas_Org_Str)
   #string(REPLACE "common" "openblas_config" OpenBLAS_cblas_Str "${OpenBLAS_cblas_Org_Str}")
