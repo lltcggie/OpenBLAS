@@ -129,6 +129,10 @@ typedef struct {
 #define STOP_RPCC(COUNTER)
 #endif
 
+#ifdef _MSC_VER
+#define __func__ __FUNCTION__
+#endif
+
 static int inner_thread(blas_arg_t *args, BLASLONG *range_m, BLASLONG *range_n, FLOAT *sa, FLOAT *sb, BLASLONG mypos){
 
   FLOAT *buffer[DIVIDE_RATE];
